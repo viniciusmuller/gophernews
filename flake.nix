@@ -43,7 +43,7 @@
 
         # `nix develop`
         devShell = with pkgs; mkShell {
-          buildInputs = [ go go-migrate docker-compose ] ++ tools;
+          buildInputs = [ go go-migrate entr docker-compose ] ++ tools;
         };
       });
 }
