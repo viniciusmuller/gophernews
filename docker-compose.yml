@@ -1,21 +1,43 @@
 version: '3.8'
 
 services:
-    # gophernews:
-    #   restart: always
-    #   build:
-    #     context: ./
-    #     dockerfile: ./Dockerfile
-    #   env_file: .env
-    #   ports:
-    #     - '8080:8080'
-    #   depends_on:
-    #     - postgres
+    gophernews:
+      restart: always
+      build:
+        context: ./
+        dockerfile: ./Dockerfile
+      environment:
+        - POSTGRESQL_URL=${POSTGRESQL_URL}
+      ports:
+        - '8080:8080'
+      depends_on:
+        - postgres
     postgres:
       image: postgres:14
       restart: always
-      env_file: .env
+      environment:
+        - POSTGRES_USER="${POSTGRES_USER}"
+        - POSTGRES_PASSWORD="${POSTGRES_PASSWORD}""
       ports:
         - '5432:5432'
       volumes:
-          - /var/lib/postgresql/data
+        - /var/lib/postgresql/data
+    prometheus:
+      image: prom/prometheus
+      restart: always
+      ports:
+        - '9090:9090'
+      volumes:
+        - ./prometheus:/etc/prometheus
+        - /var/lib/prometheus-data:/home/prom
+      command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+      user: root # TODO: Find a way to use it without this
+      depends_on:
+        - gophernews
+    grafana:
+      image: grafana/grafana-oss
+      restart: always
+      ports:
+        - '3000:3000'
+      depends_on:
+        - prometheus
